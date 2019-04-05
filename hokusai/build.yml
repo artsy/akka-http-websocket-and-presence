@@ -1,0 +1,6 @@
+---
+version: '2'
+services:
+  scala-times1:
+    build:
+      context: ../
