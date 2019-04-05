@@ -16,7 +16,7 @@ object QuickstartServer extends App with CounterRoutes {
   // set up ActorSystem and other dependencies here
   //#main-class
   //#server-bootstrapping
-  implicit val system: ActorSystem = ActorSystem("helloAkkaHttpServer")
+  implicit val system: ActorSystem = ActorSystem("counterAkkaHttpServer")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContext = system.dispatcher
   //#server-bootstrapping
@@ -24,7 +24,6 @@ object QuickstartServer extends App with CounterRoutes {
   val counterActor: ActorRef = system.actorOf(CounterActor.props, "counterActor")
 
   //#main-class
-  // from the UserRoutes trait
   lazy val routes: Route = counterRoutes
   //#main-class
 

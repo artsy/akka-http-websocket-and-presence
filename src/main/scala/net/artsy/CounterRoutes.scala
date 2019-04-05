@@ -24,26 +24,29 @@ trait CounterRoutes {
 
   lazy val counterRoutes: Route =
     pathPrefix("counter") {
-      concat(
-        path("plus") {
-          get {
-            counterActor ? Plus
-            complete(StatusCodes.OK, "plus")
-          }
-        },
-        path("minus") {
-          get {
-            counterActor ? Minus
-            complete(StatusCodes.OK, "minus")
-          }
-        },
-        path("summary") {
-          get {
-            onComplete((counterActor ? Summary).mapTo[Long]) {
-              case Success(value) => complete(value.toString)
-              case Failure(ex) => complete((StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}"))
-            }
-          }
-        })
+      concat(path("plus") {
+        get {
+          returnResponse(Plus)
+        }
+      }, path("minus") {
+        get {
+          returnResponse(Minus)
+        }
+      }, path("summary") {
+        get {
+          returnResponse(Summary)
+        }
+      })
     }
+
+  private def returnResponse(message: Message): Route = {
+    val actorResponse: Future[Long] = (counterActor ? message).mapTo[Long]
+    onComplete(actorResponse) {
+      case Success(value) => complete(value.toString)
+      case Failure(ex) =>
+        complete(
+          (StatusCodes.InternalServerError,
+            s"An error occurred: ${ex.getMessage}"))
+    }
+  }
 }
