@@ -4,10 +4,10 @@ import akka.actor.{ Actor, Props }
 
 object CounterActor {
   // actor messages
-  sealed trait Message
-  final case object Plus extends Message
-  final case object Minus extends Message
-  final case object Summary extends Message
+  sealed trait CounterActorMessage
+  final case object Plus    extends CounterActorMessage
+  final case object Minus   extends CounterActorMessage
+  final case object Summary extends CounterActorMessage
 
   def props: Props = Props[CounterActor]
 }

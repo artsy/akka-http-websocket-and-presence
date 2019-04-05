@@ -39,14 +39,15 @@ trait CounterRoutes {
       })
     }
 
-  private def returnResponse(message: Message): Route = {
+  private def returnResponse(message: CounterActorMessage): Route = {
     val actorResponse: Future[Long] = (counterActor ? message).mapTo[Long]
     onComplete(actorResponse) {
       case Success(value) => complete(value.toString)
       case Failure(ex) =>
         complete(
           (StatusCodes.InternalServerError,
-            s"An error occurred: ${ex.getMessage}"))
+           s"An error occurred: ${ex.getMessage}")
+        )
     }
   }
 }
