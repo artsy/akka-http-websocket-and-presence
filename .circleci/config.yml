@@ -1,0 +1,91 @@
+version: 2
+
+jobs:
+  test:
+    working_directory: ~/scala-times1
+
+    docker:
+      - image: artsy/scala:2.12.7
+        environment:
+          - AWS_DEFAULT_REGION: us-east-1
+    steps:
+      - add_ssh_keys
+      - checkout
+      - restore_cache:
+          keys:
+            - v2-scala-times1-{{ checksum "build.sbt" }}
+            - v2-scala-times1-
+      - run:
+          name: Run tests
+          command: sbt test < /dev/null
+      - store_test_results:
+          path: target/test-reports/
+      - run:
+          name: Build package
+          command: sbt universal:packageZipTarball < /dev/null
+      - run: mkdir -p workspace
+      - run: cp target/universal/scala-times1.tgz workspace/scala-times1.tgz
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - scala-times1.tgz
+      - save_cache:
+          key: v2-scala-times1-{{ checksum "build.sbt" }}
+          paths:
+            - "~/.ivy2"
+            - "~/.sbt"
+            - "target"
+            - "project/target"
+
+  push:
+    docker:
+      - image: artsy/hokusai:0.5.3
+    steps:
+      - add_ssh_keys
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: tar zxf /tmp/workspace/scala-times1.tgz
+      - run:
+          name: Push to Registry
+          command: hokusai registry push --tag $CIRCLE_SHA1 --force --overwrite
+
+  kubernetes-deploy-staging:
+    working_directory: ~/scala-times1
+    docker:
+      - image: artsy/hokusai:0.5.3
+    steps:
+      - add_ssh_keys
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Configure
+          command: hokusai configure --kubectl-version 1.10.7 --s3-bucket artsy-citadel --s3-key k8s/config --platform linux
+      - run:
+          name: "Validate Kubernetes Yaml"
+          command: |
+            kubectl --context staging apply -f ./hokusai/staging.yml --dry-run
+      - run:
+          name: Deploy to staging Kubernetes
+          command: hokusai staging deploy $CIRCLE_SHA1
+
+workflows:
+  version: 2
+  default:
+    jobs:
+      - test
+      - push:
+          filters:
+            branches:
+              only: 
+               - master
+          requires:
+            - test
+      - kubernetes-deploy-staging:
+          filters:
+            branches:
+              only: 
+               - master
+          requires:
+            - push

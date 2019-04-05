@@ -1,0 +1,9 @@
+---
+version: '2'
+services:
+  scala-times1:
+    extends:
+      file: build.yml
+      service: scala-times1
+    ports:
+      - 80:80
