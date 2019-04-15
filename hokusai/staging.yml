@@ -47,32 +47,4 @@ spec:
     app: scala-times1
     component: web
     layer: application
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: scala-times1
-    component: web
-    layer: application
-  name: scala-times1-web
-  namespace: default
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:iam::585031190124:server-certificate/2018-01-17_artsy-net-wildcard"
-    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
-spec:
-  ports:
-    - port: 443
-      protocol: TCP
-      name: https
-      targetPort: 8080
-  selector:
-    app: scala-times1
-    layer: application
-    component: web
-  sessionAffinity: None
   type: LoadBalancer

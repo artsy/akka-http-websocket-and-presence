@@ -6,4 +6,4 @@ services:
       file: build.yml
       service: scala-times1
     ports:
-      - 80:80
+      - 8080:8080
