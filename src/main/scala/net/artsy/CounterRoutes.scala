@@ -22,7 +22,12 @@ trait CounterRoutes {
   // Required by the `ask` (?) method below
   implicit lazy val timeout = Timeout(5.seconds) // usually we'd obtain the timeout from the system's configuration
 
-  lazy val counterRoutes: Route =
+  val websocketRoute = path("socket") {
+    ???
+//    handleMessagesWithSinkSource()
+  }
+
+  val counterRoutes: Route =
     pathPrefix("counter") {
       concat(path("plus") {
         get {
@@ -37,7 +42,7 @@ trait CounterRoutes {
           returnResponse(Summary)
         }
       })
-    }
+    } ~ websocketRoute
 
   private def returnResponse(message: CounterActorMessage): Route = {
     val actorResponse: Future[Long] = (counterActor ? message).mapTo[Long]
